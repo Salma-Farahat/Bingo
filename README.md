@@ -22,12 +22,4 @@ To play the game, follow these steps:
 
 The game includes error handling to validate the input file's format and ensures that it follows the Bingo card format rules. If any issues are detected, the game will display an error message and exit gracefully.
 
-## Author
 
-This Bash Bingo game was created by [Your Name].
-
-Feel free to enjoy a game of Bingo with your friends using this simple and fun Bash implementation!
-
----
-
-You can replace "[Your Name]" with your name or your preferred authorship information.
