@@ -1,0 +1,434 @@
+#!/bin/bash
+
+
+if  [[ $# -eq 0 || ! -f $1 ]]
+
+then
+        echo 'input file is missing or unreadable'
+        exit 1
+fi
+
+
+declare -a m
+seed=`head -1 $1`
+tail -n-5 "$1" >card
+file=$1
+
+
+w=`wc -l < $1`
+if [[ $w -ne 6 ]]
+then
+        echo 'input file must have 6 lines'
+        rm card
+        exit 2
+fi
+
+if [[ !($seed =~ ^[0-9]+$) ]]
+then
+        echo 'seed line format error'
+        rm card
+        exit 3
+fi
+
+
+a=( `cat card` )
+
+if [[ ${#a[*]} -ne 25 ]]
+then
+        echo 'card format error'
+        rm card
+        exit 4
+fi
+
+not_repeated=( ` echo "${a[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' ' ` )
+
+if [[ ${#not_repeated[*]} -ne 25 ]]
+then
+        echo 'card format error'
+        rm card
+        exit 4
+fi
+
+counter=0
+
+for elem in ${a[*]}
+do
+
+
+case $counter in
+
+        0|5|10|15|20)
+                if [[ ${a[$counter]} -lt 1 ||  ${a[$counter]} -gt 15 ]] 2>/dev/null
+                then
+                echo 'card format error'
+                rm card
+                exit 4
+                fi
+                ;;
+
+        1|6|11|16|21)
+                if [[ ${a[$counter]} -lt 16 ||  ${a[$counter]} -gt 30 ]]
+                then
+                echo 'card format error'
+                rm card
+                exit 4
+                fi
+                ;;
+        12)
+                if [[ ${a[$counter]} != "00" ]]
+                then
+                echo 'card format error'
+                rm card
+                exit 4
+                fi
+                ;;
+
+        2|7|17|22)
+
+                if [[ ${a[$counter]} -lt 31 ||  ${a[$counter]} -gt 45 ]]
+                then
+                echo 'card format error'
+                rm card
+                exit 4
+                fi
+                ;;
+
+        3|8|13|18|23)
+
+                if [[ ${a[$counter]} -lt 46 ||  ${a[$counter]} -gt 60 ]]
+                then
+                echo 'card format error'
+                rm card
+                exit 4
+                fi
+                ;;
+
+        4|9|14|19|24)
+                if [[ ${a[$counter]} -lt 61 ||  ${a[$counter]} -gt 75 ]]
+                then
+                echo 'card format error'
+                rm card
+                exit 4
+                fi
+                ;;
+
+esac
+counter=$((counter+1))
+done
+
+charcount=0
+while IFS= read -r -n1 char
+do
+
+        if [[ ($char =~ ^[0-9]+$) || ($char == ' ') || ($char == "\r" || "\n") ]]
+        then
+        charcount=$((charcount+1))
+
+
+else
+        echo 'card format error'
+        rm card
+        exit 4
+
+fi
+
+done <"$1"
+
+
+if [[ $charcount != 80 ]]
+then
+ echo 'card format error'
+ rm card
+ exit 4
+
+fi
+
+playing(){
+clear
+echo "CALL LIST: "
+
+
+printf "L%-4sI%-4sN%-4sU%-4sX%-4s\n"
+sed -i "s/"00"/00m/" card
+cat card | column -t
+echo "enter any key to get a call or q to quit: "
+RANDOM=$seed
+declare -a checking
+declare -a varlist
+
+while [ true ]
+do
+
+read input
+if [[  $input != 'q' ]]
+then
+((var=$((1 + $RANDOM % 75))))
+cpy=${var}
+if [[ ${var} -lt 10 ]]
+then
+        cpy=${var}
+        var="0${var}"
+
+fi
+unique(){
+for item in ${m[*]}
+do
+        if [[ $item -eq $var ]] 2>/dev/null
+        then
+                ((var=$((1 + $RANDOM % 75))))
+
+        if [[ ${var} -lt 10 ]]
+        then
+                var="0${var}"
+        fi
+
+
+unique
+fi
+
+done
+
+}
+
+unique
+if [[ $cpy -lt 10 ]]
+then
+cpy="L0${cpy}"
+
+elif [[ $cpy -gt 9 && $cpy -lt 16 ]]
+then
+cpy="L${cpy}"
+
+elif [[ $cpy -gt 15 && $cpy -lt 31 ]]
+then
+cpy="I${cpy}"
+
+elif [[ $cpy -gt 30 && $cpy -lt 46 ]]
+then
+cpy="N${cpy}"
+
+elif [[ $cpy -gt 45 && $cpy -lt 61 ]]
+then
+cpy="U${cpy}"
+
+else
+cpy="X${cpy}"
+
+fi
+varlist+=("$cpy")
+m+=("$var")
+
+
+
+if grep -s -q "$var" card
+then
+clear
+sed -i "s/${var}/${var}m/" card
+echo "CALL LIST: ${varlist[*]}"
+
+printf "L%-4sI%-4sN%-4sU%-4sX%-4s\n"
+cat card | column -t
+echo "Enter any key to get a call or q to quit: "
+
+
+        checking=( `cat card` )
+if [[ ${checking[0]} == *[m] && ${checking[1]} == *[m] && ${checking[2]} == *[m] && ${checking[3]} == *[m] && ${checking[4]} == *[m] ]]
+then
+
+clear
+echo "CALL LIST: ${varlist[*]}"
+
+printf "L%-4sI%-4sN%-4sU%-4sX%-4s\n"
+cat card | column -t
+echo "Enter any key to get a call or q to quit: "
+
+
+echo "WINNER"
+rm card
+exit 0
+fi
+
+if [[ ${checking[5]} == *[m] && ${checking[6]} == *[m] && ${checking[7]} == *[m] && ${checking[8]} == *[m] && ${checking[9]} == *[m] ]]
+then
+
+clear
+echo "CALL LIST: ${varlist[*]}"
+
+printf "L%-4sI%-4sN%-4sU%-4sX%-4s\n"
+cat card | column -t
+echo "Enter any key to get a call or q to quit: "
+
+
+echo "WINNER"
+rm card
+exit 0
+fi
+
+if [[ ${checking[10]} == *[m] && ${checking[11]} == *[m] && ${checking[12]} == *[m] && ${checking[13]} == *[m] && ${checking[14]} == *[m] ]]
+then
+
+clear
+echo "CALL LIST: ${varlist[*]}"
+
+printf "L%-4sI%-4sN%-4sU%-4sX%-4s\n"
+cat card | column -t
+echo "Enter any key to get a call or q to quit: "
+
+
+echo "WINNER"
+rm card
+exit 0
+fi
+
+if [[ ${checking[15]} == *[m] && ${checking[16]} == *[m] && ${checking[17]} == *[m] && ${checking[18]} == *[m] && ${checking[19]} == *[m] ]]
+then
+
+clear
+echo "CALL LIST: ${varlist[*]}"
+
+printf "L%-4sI%-4sN%-4sU%-4sX%-4s\n"
+cat card | column -t
+echo "Enter any key to get a call or q to quit: "
+
+
+echo "WINNER"
+rm card
+exit 0
+fi
+
+if [[ ${checking[20]} == *[m] && ${checking[21]} == *[m] && ${checking[22]} == *[m] && ${checking[23]} == *[m] && ${checking[24]} == *[m] ]]
+then
+
+clear
+echo "CALL LIST: ${varlist[*]}"
+
+printf "L%-4sI%-4sN%-4sU%-4sX%-4s\n"
+cat card | column -t
+echo "Enter any key to get a call or q to quit: "
+
+
+echo "WINNER"
+rm card
+exit 0
+fi
+
+if [[ ${checking[0]} == *[m] && ${checking[5]} == *[m] && ${checking[10]} == *[m] && ${checking[15]} == *[m] && ${checking[20]} == *[m] ]]
+then
+
+clear
+echo "CALL LIST: ${varlist[*]}"
+
+printf "L%-4sI%-4sN%-4sU%-4sX%-4s\n"
+cat card | column -t
+echo "Enter any key to get a call or q to quit: "
+
+
+echo "WINNER"
+rm card
+exit 0
+fi
+
+if [[ ${checking[1]} == *[m] && ${checking[6]} == *[m] && ${checking[11]} == *[m] && ${checking[16]} == *[m] && ${checking[21]} == *[m] ]]
+then
+
+clear
+echo "CALL LIST: ${varlist[*]}"
+
+printf "L%-4sI%-4sN%-4sU%-4sX%-4s\n"
+cat card | column -t
+echo "Enter any key to get a call or q to quit: "
+
+
+echo "WINNER"
+rm card
+exit 0
+fi
+
+if [[ ${checking[2]} == *[m] && ${checking[7]} == *[m] && ${checking[12]} == *[m] && ${checking[17]} == *[m] && ${checking[22]} == *[m] ]]
+then
+
+clear
+echo "CALL LIST: ${varlist[*]}"
+
+printf "L%-4sI%-4sN%-4sU%-4sX%-4s\n"
+cat card | column -t
+echo "Enter any key to get a call or q to quit: "
+
+
+echo "WINNER"
+rm card
+exit 0
+fi
+
+if [[ ${checking[3]} == *[m] && ${checking[8]} == *[m] && ${checking[13]} == *[m] && ${checking[18]} == *[m] && ${checking[23]} == *[m] ]]
+then
+
+clear
+echo "CALL LIST: ${varlist[*]}"
+
+printf "L%-4sI%-4sN%-4sU%-4sX%-4s\n"
+cat card | column -t
+echo "Enter any key to get a call or q to quit: "
+
+
+echo "WINNER"
+rm card
+exit 0
+fi
+
+if [[ ${checking[4]} == *[m] && ${checking[9]} == *[m] && ${checking[14]} == *[m] && ${checking[19]} == *[m] && ${checking[24]} == *[m] ]]
+then
+
+clear
+echo "CALL LIST: ${varlist[*]}"
+
+printf "L%-4sI%-4sN%-4sU%-4sX%-4s\n"
+cat card | column -t
+echo "Enter any key to get a call or q to quit: "
+
+
+echo "WINNER"
+rm card
+exit 0
+fi
+
+if [[ ${checking[0]} == *[m] && ${checking[4]} == *[m] && ${checking[20]} == *[m] && ${checking[24]} == *[m] ]]
+then
+
+clear
+echo "CALL LIST: ${varlist[*]}"
+
+printf "L%-4sI%-4sN%-4sU%-4sX%-4s\n"
+cat card | column -t
+echo "Enter any key to get a call or q to quit: "
+
+
+echo "WINNER"
+rm card
+exit 0
+fi
+
+
+else
+clear
+echo "CALL LIST: ${varlist[*]}"
+
+printf "L%-4sI%-4sN%-4sU%-4sX%-4s\n"
+cat card | column -t
+echo "Enter any key to get a call or q to quit: "
+
+fi
+
+else
+        rm card
+        exit 0
+fi
+done
+
+
+}
+
+playing
+
+
+
